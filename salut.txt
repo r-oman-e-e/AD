@@ -1,1 +1,6 @@
-coucocu
+Construction base de données par web scraping de cocktails en ligne.
+On peut chercher sur des sites comme Grey Goose pour la vodka, 1001cocktails.com
+On cherche plein de recettes différentes. 
+On demande à l'utilisateur de rentrer les ingrédients à sa disposition, et en fonction de ça ET de ses goûts
+(qu'on peut représenter par ses cocktails/alcools préférés qu'on lui demande) on lui propose plusieurs boissons
+avec différentes notes qui sera fonction de ses goûts.
