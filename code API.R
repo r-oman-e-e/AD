@@ -59,3 +59,5 @@ all_cocktails = all_cocktails %>%
          measure_11 = strMeasure11)
 
 View(all_cocktails)
+
+
