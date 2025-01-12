@@ -32,8 +32,7 @@ ui <- fluidPage(
       actionButton("prefButton", "Quels ingrédients avez-vous ?"),
       uiOutput("ingredientSelector"),
       actionButton("goButton", "Trouver un cocktail"),
-      actionButton("surpriseMe", "Surprenez-moi !"),
-      uiOutput("favoritesSection")
+      actionButton("surpriseMe", "Surprenez-moi !")
     ),
     
     mainPanel(
@@ -47,8 +46,6 @@ ui <- fluidPage(
 
 # Serveur
 server <- function(input, output, session) {
-  # Réactive pour les favoris
-  favoris <- reactiveVal(data.frame())
   
   # Suggérer des cocktails dynamiquement au fur et à mesure que l'utilisateur tape
   observeEvent(input$searchCocktail, {
@@ -72,10 +69,8 @@ server <- function(input, output, session) {
             lapply(1:nrow(search_result), function(i) {
               cocktail <- search_result[i, ]
               tags$li(
-                tags$p(paste("Nom :", cocktail$cocktail_name)),
                 tags$p(paste("Catégorie :", cocktail$category)),
                 tags$p(paste("Verre :", cocktail$glass)),
-                actionButton(paste0("addToFavorites_", i), "Ajouter aux favoris", class = "btn-success"),
                 actionButton(paste0("details_", i), "Voir les détails", class = "btn-primary")
               )
             })
@@ -113,9 +108,6 @@ server <- function(input, output, session) {
     cocktails_disponibles <- cocktails_analyse %>% filter(nb_manquants == 0)
     cocktails_suggestions <- cocktails_analyse %>% filter(nb_manquants > 0) %>% arrange(nb_manquants)
     
-    # Enregistrer les suggestions pour l'utiliser globalement
-    assign("cocktails_suggestions", cocktails_suggestions, envir = .GlobalEnv)
-    
     # Afficher les cocktails réalisables
     output$cocktailsList <- renderUI({
       if (nrow(cocktails_disponibles) > 0) {
@@ -128,7 +120,6 @@ server <- function(input, output, session) {
                 tags$p(paste("Nom :", cocktail$cocktail_name)),
                 tags$p(paste("Catégorie :", cocktail$category)),
                 tags$p(paste("Verre :", cocktail$glass)),
-                actionButton(paste0("addToFavorites_", i), "Ajouter aux favoris", class = "btn-success"),
                 actionButton(paste0("details_", i), "Voir les détails", class = "btn-primary")
               )
             })
@@ -170,47 +161,28 @@ server <- function(input, output, session) {
     }
   })
   
-  # Ajouter un cocktail aux favoris
-  lapply(1:nrow(all_cocktails), function(i) {
-    observeEvent(input[[paste0("addToFavorites_", i)]], {
-      cocktail <- all_cocktails[i, ]
-      favoris(rbind(favoris(), cocktail))
-    })
-  })
-  
-  # Afficher les favoris
-  output$favoritesSection <- renderUI({
-    if (nrow(favoris()) > 0) {
-      tagList(
-        tags$h3("Vos favoris :"),
-        tags$ul(
-          lapply(1:nrow(favoris()), function(i) {
-            tags$li(favoris()$cocktail_name[i])
-          })
-        )
-      )
-    } else {
-      tags$p("Aucun favori ajouté.")
-    }
-  })
-  
-  # Voir les détails d'un cocktail
   lapply(1:nrow(all_cocktails), function(i) {
     observeEvent(input[[paste0("details_", i)]], {
-      cocktail <- all_cocktails[i, ]
+      # Extraire le cocktail correspondant à l'indice 'i'
+      cocktail <- all_cocktails %>% slice(i)
+      
+      # Mettre à jour la section de détails
       output$detailsSection <- renderUI({
         tagList(
           tags$h3("Détails du cocktail :"),
-          tags$p(paste("Nom :", cocktail$cocktail_name)),
           tags$p(paste("Catégorie :", cocktail$category)),
           tags$p(paste("Verre :", cocktail$glass)),
           tags$p(paste("Instructions :", cocktail$instructions)),
           tags$h4("Ingrédients :"),
           tags$ul(
-            lapply(1:length(cocktail$ingredients_necessaires[[1]]), function(j) {
-              ingredient <- cocktail$ingredients_necessaires[[1]][j]
-              measure <- cocktail$mesures[[1]][j]
-              tags$li(paste(ingredient, ":", measure))
+            # Parcourir les ingrédients nécessaires pour ce cocktail
+            lapply(1:11, function(j) {
+              ingredient <- cocktail[[paste0("ingredient_", j)]]
+              measure <- cocktail[[paste0("measure_", j)]]
+              # Afficher seulement si l'ingrédient existe
+              if (!is.na(ingredient) && ingredient != "") {
+                tags$li(paste(ingredient, ":", ifelse(!is.na(measure), measure, "Quantité non spécifiée")))
+              }
             })
           )
         )
@@ -218,17 +190,16 @@ server <- function(input, output, session) {
     })
   })
   
+  
   # Surprenez-moi
   observeEvent(input$surpriseMe, {
     cocktail_random <- all_cocktails %>% sample_n(1)
     output$cocktailsList <- renderUI({
       tagList(
         tags$h3("Cocktail surprise :"),
-        tags$p(paste("Nom :", cocktail_random$cocktail_name)),
         tags$p(paste("Catégorie :", cocktail_random$category)),
         tags$p(paste("Verre :", cocktail_random$glass)),
-        tags$p(paste("Instructions :", cocktail_random$instructions)),
-        actionButton("addToFavoritesSurprise", "Ajouter aux favoris", class = "btn-success")
+        tags$p(paste("Instructions :", cocktail_random$instructions))
       )
     })
   })
