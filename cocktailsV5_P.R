@@ -1,3 +1,7 @@
+#Charger le Rdata de cocktails
+
+library(shiny)
+library(dplyr)
 
 # Fonction pour analyser les cocktails et identifier les ingrédients manquants
 analyser_ingredients <- function(data, ingredients_dispo) {
@@ -100,3 +104,4 @@ server <- function(input, output, session) {
 
 # Lancer l'application
 shinyApp(ui = ui, server = server)
+
