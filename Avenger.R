@@ -19,7 +19,7 @@ analyser_ingredients <- function(data, ingredients_dispo) {
 
 # Interface utilisateur
 ui <- fluidPage(
-  themeSelector(),  # Permettre à l'utilisateur de choisir un thème
+  themeSelector(),
   titlePanel("Quel cocktail peut-on préparer ?"),
   
   sidebarLayout(
@@ -75,7 +75,8 @@ server <- function(input, output, session) {
                 tags$p(paste("Nom :", cocktail$cocktail_name)),
                 tags$p(paste("Catégorie :", cocktail$category)),
                 tags$p(paste("Verre :", cocktail$glass)),
-                actionButton(paste0("addToFavorites_", i), "Ajouter aux favoris", class = "btn-success")
+                actionButton(paste0("addToFavorites_", i), "Ajouter aux favoris", class = "btn-success"),
+                actionButton(paste0("details_", i), "Voir les détails", class = "btn-primary")
               )
             })
           )
@@ -191,6 +192,30 @@ server <- function(input, output, session) {
     } else {
       tags$p("Aucun favori ajouté.")
     }
+  })
+  
+  # Voir les détails d'un cocktail
+  lapply(1:nrow(all_cocktails), function(i) {
+    observeEvent(input[[paste0("details_", i)]], {
+      cocktail <- all_cocktails[i, ]
+      output$detailsSection <- renderUI({
+        tagList(
+          tags$h3("Détails du cocktail :"),
+          tags$p(paste("Nom :", cocktail$cocktail_name)),
+          tags$p(paste("Catégorie :", cocktail$category)),
+          tags$p(paste("Verre :", cocktail$glass)),
+          tags$p(paste("Instructions :", cocktail$instructions)),
+          tags$h4("Ingrédients :"),
+          tags$ul(
+            lapply(1:length(cocktail$ingredients_necessaires[[1]]), function(j) {
+              ingredient <- cocktail$ingredients_necessaires[[1]][j]
+              measure <- cocktail$mesures[[1]][j]
+              tags$li(paste(ingredient, ":", measure))
+            })
+          )
+        )
+      })
+    })
   })
   
   # Surprenez-moi
