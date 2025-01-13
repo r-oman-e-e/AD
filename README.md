@@ -1,1 +1,3 @@
-# AD
+#Introduction : Ce projet a été conçu pour permettre aux utilisateurs de découvrir de nouveaux cocktails selon différents critères.
+
+#Utilisation : Plusieurs versions du code sont disponibles sur GitHub. Cependant, la version finale, intitulée "VF", intègre l'ensemble des fonctionnalités nécessaires. Elle permet d'exécuter tout le programme de manière autonome, y compris la partie dédiée au web scraping. Par conséquent, il n’est pas nécessaire d’ajouter des données manuellement. Les données présentes sur GitHub ont été utilisées uniquement dans les versions antérieures du code. Enfin, les versions antérieures permettent de regarder l'avancée du code et peuvent participer à sa compréhension.
