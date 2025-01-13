@@ -1,0 +1,130 @@
+---
+title: "Recommandation de cocktails"
+author: "Romane Froger, Paul RRitzinger, Andres Goitia"
+date: "2025-01-13"
+output: slidy_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+- **Objectif** : Fournir aux utilisateurs des recommandations personnalisées de cocktails.
+- **Caractéristiques principales** :
+  - Explorer des cocktails par catégorie ou par ingrédients disponibles.
+  - Afficher des instructions détaillées pour la préparation.
+  - Comprendre les ingrédients et les quantités nécessaires.
+
+## Source de données
+
+- **API utilisée** : [TheCocktailDB](https://www.thecocktaildb.com/).
+- **Données récupérées dynamiquement** : Les cocktails sont obtenus en interrogeant l'API pour chaque lettre de l'alphabet.
+
+**Exemple d'appel API :**
+`https://www.thecocktaildb.com/api/json/v1/1/search.php?f=a`
+
+## Aperçu du flux de travail
+
+1. Récupérer et nettoyer les données de l'API.
+2. Fournir des fonctionnalités de recherche :
+   - Par catégories (ex. : "Ordinary Drink").
+   - Par ingrédients disponibles.
+3. Afficher des informations détaillées sur les cocktails :
+   - Instructions pour la préparation.
+   - Liste des ingrédients et mesures.
+
+## Nettoyage des données
+
+- Les champs inutiles (ex. : `idDrink`, `dateModified`) sont supprimés.
+- Les colonnes des ingrédients et des mesures sont organisées.
+
+**Exemple de dataset nettoyé :**
+- `cocktail_name` : Margarita
+- `category` : Ordinary Drink
+- `ingredient_1` : Tequila
+- `measure_1` : 1 1/2 oz
+
+## Recherche de cocktails
+
+### Par ingrédients
+- Faire correspondre les ingrédients sélectionnés par l'utilisateur avec les recettes de cocktails.
+- Mettre en évidence les ingrédients manquants.
+
+**Logique :**
+- Compter les ingrédients correspondants.
+- Identifier les ingrédients manquants.
+- Prioriser les recettes avec moins d'ingrédients manquants.
+
+### Par catégorie
+- Permettre aux utilisateurs d'explorer les cocktails en fonction de catégories prédéfinies.
+
+**Catégories populaires :**
+- "Cocktail"
+- "Shot"
+- "Ordinary Drink"
+
+## Exemple de fonctionnalité
+
+```{r example-find-category, eval=FALSE}
+find_by_category <- function(selected_categories) {
+  all_cocktails %>%
+    filter(category %in% selected_categories) %>%
+    select(cocktail_name, category)
+}
+```
+
+## Affichage des détails du cocktail
+
+**Détails affichés :**
+- Nom, catégorie et type de verre.
+- Instructions de préparation.
+- Ingrédients avec mesures.
+
+**Exemple :**
+- **Nom** : Margarita
+- **Catégorie** : Ordinary Drink
+- **Verre** : Verre à cocktail
+- **Instructions** : Frottez le bord du verre avec du citron vert, trempez-le dans du sel.
+- **Ingrédients** :
+  - Tequila : 1 1/2 oz
+  - Triple sec : 1/2 oz
+  - Jus de citron vert : 1 oz
+
+## Flux d'interaction utilisateur
+
+1. L'utilisateur sélectionne un type de recherche :
+   - Catégories.
+   - Ingrédients.
+2. Le système filtre les cocktails en fonction des entrées.
+3. L'utilisateur sélectionne un cocktail pour voir les détails.
+
+## Fonctionnalité principale
+
+```{r main-functionality, eval=FALSE}
+main_function <- function() {
+  cat("Bienvenue dans le système de recommandation de cocktails !\n")
+  choix <- readline("Choisissez : Par catégorie (1) ou par ingrédients (2) : ")
+  
+  if (choix == "1") {
+    categories <- menu(unique_categories, title = "Sélectionnez une catégorie")
+    matching_cocktails <- find_by_category(categories)
+    print(matching_cocktails)
+  } else if (choix == "2") {
+    ingredients <- menu(unique_ingredients, title = "Sélectionnez des ingrédients")
+    matching_cocktails <- find_by_ingredients(ingredients)
+    print(matching_cocktails)
+  } else {
+    cat("Choix invalide. Redémarrez.\n")
+  }
+}
+```
+
+## Conclusion
+
+- **Résultat** : Une recommandation flexible adapté aux préférences des utilisateurs.
+- **Améliorations futures** :
+  - Filtrage amélioré (ex. : alcoolisé vs non alcoolisé).
+  - Interface web conviviale.
+  - Fonctionnalité hors ligne avec recettes sauvegardées.
