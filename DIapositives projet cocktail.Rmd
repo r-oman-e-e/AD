@@ -1,6 +1,6 @@
 ---
 title: "Recommandation de cocktails"
-author: "Romane Froger, Paul RRitzinger, Andres Goitia"
+author: "Romane Froger, Paul Ritzinger, Andres Goitia"
 date: "2025-01-13"
 output: slidy_presentation
 ---
@@ -126,5 +126,7 @@ main_function <- function() {
 - **Résultat** : Une recommandation flexible adapté aux préférences des utilisateurs.
 - **Améliorations futures** :
   - Filtrage amélioré (ex. : alcoolisé vs non alcoolisé).
-  - Interface web conviviale.
+  - Plus de précision en fonction des goûts (sucré, amer, acide)
+  - Proposition de cocktails en fonction de ceux qui ont déjà été consommés
+  - Interface web conviviale ou interface sur Rstudio (ex: Shiny)
   - Fonctionnalité hors ligne avec recettes sauvegardées.

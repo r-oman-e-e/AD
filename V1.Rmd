@@ -1,0 +1,125 @@
+---
+title: "Moteur de recherche pour cocktails"
+author: "Romane Froger, Paul Ritzinger, Andres Goitia"
+date: "2025-01-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Introduction : Ce document présente un outil de sélection de cocktails développé en R. L'objectif est de fournir une interface simple permettant de rechercher des cocktails en fonction de leurs ingrédients ou de leur catégorie. Le projet utilise une API externe pour récupérer des données sur les cocktails et applique plusieurs étapes de nettoyage et de traitement des données.
+
+Bibliothèques utilisées Les bibliothèques suivantes sont nécessaires pour exécuter ce projet :
+
+httr : pour effectuer des requêtes API. jsonlite : pour manipuler des données JSON. dplyr : pour le traitement des données.
+
+```{r}
+#Charger les bibliothèques
+library(httr)
+library(jsonlite)
+library(dplyr)
+```
+
+Fonctionnalités principales Récupération des données Les données sur les cocktails sont récupérées depuis l'API TheCocktailDB. Une fonction permet de récupérer tous les cocktails dont le nom commence par une lettre spécifique.
+
+```{r}
+# Fonction pour récupérer les cocktails par lettre
+get_cocktails_by_letter <- function(letter) {
+  url <- paste0("https://www.thecocktaildb.com/api/json/v1/1/search.php?f=", letter)
+  response <- GET(url)
+  if (response$status_code == 200) {
+    data <- content(response, as = "text", encoding = "UTF-8")
+    json_data <- fromJSON(data, flatten = TRUE)
+    return(json_data$drinks)
+  } else {
+    return(NULL)
+  }
+}
+
+# Récupérer tous les cocktails
+all_cocktails <- lapply(letters, get_cocktails_by_letter)
+all_cocktails <- bind_rows(all_cocktails)
+
+```
+
+Nettoyage et structuration des données Les données sont nettoyées pour éliminer les colonnes inutiles et rendre les informations plus faciles à manipuler.
+
+```{r}
+all_cocktails <- all_cocktails %>%
+  select(-idDrink, -strDrinkAlternate, -strTags, -strVideo, -strIBA, 
+         -strInstructionsDE, -strInstructionsES, -strInstructionsFR, 
+         -strInstructionsIT, -`strInstructionsZH-HANS`, -`strInstructionsZH-HANT`, 
+         -strDrinkThumb, -strIngredient12, -strIngredient13, -strIngredient14, -strIngredient15, 
+         -strImageSource, -strImageAttribution, -strCreativeCommonsConfirmed, -dateModified,
+         -strMeasure12, -strMeasure13, -strMeasure14, -strMeasure15) %>%
+  rename(cocktail_name = strDrink,
+         category = strCategory,
+         alcoholic = strAlcoholic,
+         glass = strGlass,
+         instructions = strInstructions)
+
+```
+Recherche par critères
+Deux approches sont proposées pour rechercher des cocktails :
+
+Par catégorie : Permet de sélectionner une catégorie de cocktails (ex. : "Ordinary Drink").
+Par ingrédients : Permet de rechercher des cocktails contenant certains ingrédients.
+Exemple de recherche par catégorie
+```{r}
+# Fonction pour rechercher par catégorie
+find_by_category <- function(selected_categories) {
+  matching_cocktails <- all_cocktails %>%
+    filter(category %in% selected_categories)
+  return(matching_cocktails)
+}
+
+# Exemple : Rechercher des cocktails dans la catégorie "Ordinary Drink"
+find_by_category("Ordinary Drink")
+
+```
+Exemple de recherche par ingrédients
+```{r}
+# Fonction pour rechercher par ingrédients
+find_by_ingredients <- function(selected_ingredients) {
+  matching_cocktails <- all_cocktails %>%
+    mutate(across(starts_with("ingredient_"), tolower)) %>%
+    rowwise() %>%
+    mutate(
+      present_ingredients = sum(c_across(starts_with("ingredient_")) %in% selected_ingredients, na.rm = TRUE),
+      missing_ingredients = sum(!c_across(starts_with("ingredient_")) %in% selected_ingredients & !is.na(c_across(starts_with("ingredient_"))), na.rm = TRUE)
+    ) %>%
+    ungroup() %>%
+    filter(present_ingredients > 0)
+  
+  return(matching_cocktails)
+}
+
+# Exemple : Rechercher des cocktails avec "vodka"
+find_by_ingredients(c("vodka"))
+
+```
+
+Affichage des détails d'un cocktail
+Une fonction permet d'afficher les informations détaillées d'un cocktail spécifique.
+```{r}
+show_cocktail_details <- function(cocktail_data, cocktail_name) {
+  cocktail <- cocktail_data %>% filter(cocktail_name == !!cocktail_name)
+  if (nrow(cocktail) == 1) {
+    cat("\nCocktail Details: ", cocktail_name, "\n")
+    cat("Category: ", cocktail$category, "\n")
+    cat("Type: ", cocktail$alcoholic, "\n")
+    cat("Recommended Glass: ", cocktail$glass, "\n")
+    cat("Instructions: ", cocktail$instructions, "\n")
+  } else {
+    cat("No information available for this cocktail.\n")
+  }
+}
+
+
+
+```
+
+Conclusion
+Ce projet met en œuvre une approche pratique pour explorer les cocktails en fonction des préférences et des ingrédients disponibles. Le code peut être enrichi avec des fonctionnalités supplémentaires comme des filtres avancés ou une interface utilisateur.
